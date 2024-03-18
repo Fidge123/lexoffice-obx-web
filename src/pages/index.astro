@@ -3,22 +3,141 @@
 ---
 
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>LexOffice OBX Importer</title>
-	</head>
-	<body>
-		<h1>LexOffice OBX Importer</h1>
-		<form>
-			<label for="obx">OBX Datei</label>
-			<input id="obx" type="file" />
-			<label for="obx">API Key</label>
-			<input type="text" />
-			<button>Vorschau</button>
-			<button>Import</button>
-		</form>
-	</body>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>LexOffice OBX Importer</title>
+  </head>
+  <body>
+    <h1>LexOffice OBX Importer</h1>
+    <form>
+      <label for="obx" class="fileUpload">OBX Datei</label>
+      <div id="dropZone">
+        <p id="dropText">Drag & Drop oder anklicken</p>
+      </div>
+      <input id="obx" type="file" accept=".obx,application/obx+xml" />
+
+      <label>
+        API Key
+        <input type="text" name="obx" />
+      </label>
+
+      <label>
+        Kunde
+        <input type="text" name="obx" />
+      </label>
+
+      <div class="formactions">
+        <button>Vorschau</button>
+        <button>Import</button>
+      </div>
+    </form>
+    <div class="previewArea">
+      <samp id="preview"></samp>
+    </div>
+  </body>
 </html>
+
+<script>
+  const dropZone = document.querySelector("#dropZone");
+  const dropText = document.querySelector("#dropText");
+  const fileUpload = document.querySelector("#obx") as HTMLInputElement;
+  const preview = document.querySelector("#preview");
+
+  fileUpload?.addEventListener("change", () => {
+    const file = fileUpload.files?.[0];
+    if (file) {
+      handleFileUpload(file);
+    }
+  });
+
+  dropZone?.addEventListener("click", () => fileUpload?.click());
+
+  dropZone?.addEventListener("drop", (event) => {
+    const ev = event as DragEvent;
+    ev.preventDefault();
+
+    if (ev.dataTransfer?.items) {
+      const item = ev.dataTransfer?.items[0];
+      console.log(item);
+      if (item.kind === "file") {
+        handleFileUpload(item.getAsFile()!);
+      }
+    } else if (ev.dataTransfer?.files) {
+      console.log(ev.dataTransfer?.files[0]);
+      handleFileUpload(ev.dataTransfer?.files[0]);
+    }
+  });
+
+  dropZone?.addEventListener("dragover", (event) => {
+    const ev = event as DragEvent;
+    ev.preventDefault();
+  });
+
+  async function handleFileUpload(file: File) {
+    if (preview) {
+      preview.textContent = await file.text();
+    }
+    if (dropText) {
+      dropText.textContent = file.name;
+    }
+  }
+</script>
+
+<style>
+  html {
+    padding: 16px 32px;
+  }
+
+  form {
+    width: 480px;
+  }
+
+  form > * {
+    margin: 16px 0;
+  }
+
+  label {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  label input {
+    flex-grow: 1;
+    max-width: 240px;
+  }
+
+  #obx {
+    display: none;
+  }
+
+  #dropZone {
+    display: grid;
+    place-items: center;
+    border: 1px solid black;
+    width: 480px;
+    height: 100px;
+  }
+
+  .formactions {
+    display: flex;
+    gap: 12px;
+    justify-content: end;
+  }
+
+  .previewArea:has(> samp:empty) {
+    display: none;
+  }
+
+  .previewArea:has(> samp) {
+    display: default;
+  }
+
+  .previewArea {
+    background-color: lightgray;
+    width: 480px;
+    padding: 12px;
+  }
+</style>
